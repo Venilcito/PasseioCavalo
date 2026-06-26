@@ -8,7 +8,9 @@ const botaoA = document.getElementById('btn-a');
 const tamanhoCasa = canvas.width/8;
 let cavaloX = null;
 let cavaloY = null;
+
 let caminho = [];
+let opcoes = false;
 
 ws.onmessage = function(event){
     // pegando os resultados do python
@@ -25,32 +27,67 @@ ws.onmessage = function(event){
     }
 };
 
-canvas.addEventListener('click', function(event) {
+canvas.addEventListener('click', function(event){
     const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const clickX = Math.floor((event.clientX - rect.left) / tamanhoCasa);
+    const clickY = Math.floor((event.clientY - rect.top) / tamanhoCasa);
 
-    const casaClicadaX = Math.floor(mouseX / tamanhoCasa);
-    const casaClicadaY = Math.floor(mouseY / tamanhoCasa);
+    if (caminho.length === 0) {
+        caminho.push({x: clickX, y: clickY});
+        cavaloX = clickX;
+        cavaloY = clickY;
+        
+        botaoD.disabled = false;
+        botaoA.disabled = false;
+    } else{
+        const atual = caminho[caminho.length - 1];
 
-    cavaloX = casaClicadaX;
-    cavaloY = casaClicadaY;
+        if (clickX === atual.x && clickY === atual.y) {
+            opcoes = !opcoes; 
+        } else{
+            const validos = moveValido(atual.x, atual.y);
+            const cliqueValido = validos.some(m => m.x === clickX && m.y === clickY);
+
+            if (cliqueValido && opcoes) {
+                caminho.push({x: clickX, y: clickY});
+                cavaloX = clickX; 
+                cavaloY = clickY;
+                
+                opcoes = false; 
+            } else {
+                opcoes = false;
+            }
+        }
+    }
+
     renderizar();
-
-    botaoD.disabled = false;
-    botaoA.disabled = false;
-    console.log(`Cavalo colocado em (${cavaloX}, ${cavaloY})`);
 });
 
 botaoD.addEventListener('click', () => iniciarAlgoritmo("dfs"));
 botaoA.addEventListener('click', () => iniciarAlgoritmo("a*"));
 
+function moveValido(x, y){
+    const possiveis = [
+        {x: x+1, y: y-2}, {x: x+2, y: y-1}, {x: x+2, y: y+1}, {x: x+1, y: y+2},
+        {x: x-1, y: y+2}, {x: x-2, y: y+1}, {x: x-2, y: y-1}, {x: x-1, y: y-2}
+    ];
+
+    return possiveis.filter(m => {
+        if (m.x < 0 || m.x > 7 || m.y < 0 || m.y > 7) return false;
+        
+        const jaVisitou = caminho.some(casa => casa.x === m.x && casa.y === m.y);
+        if (jaVisitou) return false;
+
+        return true;
+    });
+}
+
 function iniciarAlgoritmo(escolha) {
-    if (cavaloX === null || cavaloY === null) return;
+    if (caminho.length === 0) return;
 
     const config = {
         algoritmo: escolha,
-        inicio: { x: cavaloX, y: cavaloY }
+        inicio: caminho 
     };
 
     ws.send(JSON.stringify(config));
@@ -75,17 +112,17 @@ function desenharTabuleiro(){
 }
 
 function desenharCavalo() {
-    if (cavaloX !== null && cavaloY !== null) {
-        ctx.font = "35px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = '#000000';
-        
-        const pixelX = (cavaloX * tamanhoCasa) + (tamanhoCasa / 2);
-        const pixelY = (cavaloY * tamanhoCasa) + (tamanhoCasa / 2);
-        
-        ctx.fillText("♞", pixelX, pixelY);
-    }
+    if(caminho.length === 0) return;
+
+    ctx.font = "35px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = '#000000';
+    
+    const pixelX = (cavaloX * tamanhoCasa) + (tamanhoCasa / 2);
+    const pixelY = (cavaloY * tamanhoCasa) + (tamanhoCasa / 2);
+    
+    ctx.fillText("♞", pixelX, pixelY);
 }
 
 function desenharCaminho() {
@@ -118,10 +155,25 @@ function desenharCaminho() {
     ctx.stroke();
 }
 
+function desenharDestaques() {
+    if (!opcoes || caminho.length === 0) return;
+
+    const atual = caminho[caminho.length - 1];
+    const validos = moveValido(atual.x, atual.y);
+    
+    ctx.fillStyle = 'rgba(0, 150, 255, 0.3)';
+    
+    for (let i = 0; i < validos.length; i++) {
+        const m = validos[i];
+        ctx.fillRect(m.x * tamanhoCasa, m.y * tamanhoCasa, tamanhoCasa, tamanhoCasa);
+    }
+}
+
 function renderizar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     desenharTabuleiro();
     desenharCaminho();
+    desenharDestaques();
     desenharCavalo();
 }
 
