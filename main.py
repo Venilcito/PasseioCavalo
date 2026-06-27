@@ -4,7 +4,8 @@ from fastapi.responses import FileResponse
 import asyncio
 import json
 
-from algoritmos.idaestrela import ida_estrela
+from algoritmos.idaestrela import ida_estrela 
+from algoritmos.dfs_semheuristica import dfs_interface
 
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
@@ -33,6 +34,35 @@ async def websocket_endpoint(websocket: WebSocket):
                     "status": "rodando",
                     "algoritmo": algoritmo,
                     "caminho": caminho,
+                    "ger": gerados,
+                    "exp": expandidos,
+                    "iter": iteracoes
+                }
+
+                await websocket.send_json(payload)
+
+        elif algoritmo == "dfs":
+            INICIAL = caminho
+
+            resultado, gerados, expandidos, iteracoes = dfs_interface(INICIAL)
+
+            caminho_json = [{
+                "x": resultado[0][0],
+                "y": resultado[0][1]
+            }]
+
+            for coordenada in resultado[1:]:
+                # await asyncio.sleep(0.01)
+
+                caminho_json.append({
+                    "x": coordenada[0],
+                    "y": coordenada[1]
+                })
+
+                payload = {
+                    "status": "rodando",
+                    "algoritmo": algoritmo,
+                    "caminho": caminho_json,
                     "ger": gerados,
                     "exp": expandidos,
                     "iter": iteracoes

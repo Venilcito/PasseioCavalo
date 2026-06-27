@@ -223,6 +223,13 @@ def ler_casa_inicial():
             return (linha - 1, coluna - 1)   # Conversão para base 0.
         print("  X Fora do tabuleiro. Use valores de 1 a 8.\n")
 
+def dfs_interface(inicio):
+     # Recebe [(linha, coluna)] da interface
+    if isinstance(inicio, list):
+        inicio = inicio[0]
+        
+    caminho, metricas = busca_dfs(inicio)
+    return (caminho, metricas["nos_gerados"], metricas["nos_expandidos"], 0)
 
 if __name__ == "__main__":
     print("=======================================")
