@@ -43,17 +43,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
         elif algoritmo == "dfs":
             INICIAL = caminho
-
+            #Executa a DFS
             resultado, gerados, expandidos, iteracoes = dfs_interface(INICIAL)
+            #Lista que será enviada para a interface 
+            caminho_json = []
 
-            caminho_json = [{
-                "x": resultado[0][0],
-                "y": resultado[0][1]
-            }]
-
-            for coordenada in resultado[1:]:
-                # await asyncio.sleep(0.01)
-
+            #Envia um movimento pot vez
+            for coordenada in resultado:
                 caminho_json.append({
                     "x": coordenada[0],
                     "y": coordenada[1]
@@ -69,6 +65,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 }
 
                 await websocket.send_json(payload)
+                #tempo entre um movimento e o outro
+                await asyncio.sleep(0.2)
 
         await websocket.send_json({"status": "fim"})
     
