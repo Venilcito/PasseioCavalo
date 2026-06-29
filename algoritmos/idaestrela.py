@@ -1,3 +1,7 @@
+#TRABALHO 1 - Inteligência Artificial
+#Dupla: Gustavo Chiossi e Vinicius Castamann
+#Algoritmo: IDA* (com heurística)
+
 import time
 import sys
 
