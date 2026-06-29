@@ -142,7 +142,8 @@ def busca_dfs(inicio, limite_tempo=None, limite_nos=None):
                 time.perf_counter() - tempo_inicio,
                 status="limite_de_nos_atingido")
         if limite_tempo is not None and (time.perf_counter() - tempo_inicio) > limite_tempo:
-            return None, monta_metricas(
+            caminho_parcial = reconstruir_caminho(no)
+            return caminho_parcial, monta_metricas(
                 nos_gerados, nos_expandidos,
                 time.perf_counter() - tempo_inicio,
                 status="limite_de_tempo_atingido")
@@ -223,14 +224,16 @@ def ler_casa_inicial():
             return (linha - 1, coluna - 1)   # Conversão para base 0.
         print("  X Fora do tabuleiro. Use valores de 1 a 8.\n")
 
-def dfs_interface(inicio):
+# Função para rodar o algoritmo na interface 
+def dfs_interface(inicio, tempo_max=None):
      # Recebe [(linha, coluna)] da interface
     if isinstance(inicio, list):
         inicio = inicio[0]
-        
-    caminho, metricas = busca_dfs(inicio)
-    return (caminho, metricas["nos_gerados"], metricas["nos_expandidos"], 0)
 
+    caminho, metricas = busca_dfs(inicio, limite_tempo=tempo_max)
+    return (caminho, metricas["nos_gerados"], metricas["nos_expandidos"], metricas["tempo_segundos"])
+
+#Rodar o algoritmo via terminal 
 if __name__ == "__main__":
     print("=======================================")
     print("DFS PURO (sem heuristica) tabuleiro 8x8")

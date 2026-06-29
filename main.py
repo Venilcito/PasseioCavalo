@@ -7,10 +7,11 @@ import json
 from algoritmos.idaestrela import ida_estrela 
 from algoritmos.dfs_semheuristica import dfs_interface
 
+# APLICAÇÃO: usando WebSockets com o FastAPI para fazer a comunicação dos algoritmos com o front
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
-@app.websocket('/ws/cavalo')
+@app.websocket('/cavalo')
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
@@ -19,54 +20,33 @@ async def websocket_endpoint(websocket: WebSocket):
 
         algoritmo = config.get('algoritmo')
         bruto_path = config.get('inicio')
+        tempo_max = config.get('max')
         caminho = [(passo['x'], passo['y']) for passo in bruto_path]
 
-        if(algoritmo == "a*"):
-            INICIAL = caminho
-            resultado, gerados, expandidos, iteracoes = ida_estrela(INICIAL)
-
-            for coordenada in resultado:
-                #await asyncio.sleep(0.01)
-
-                caminho.append({"x": coordenada[0], "y": coordenada[1]})
-
-                payload = {
-                    "status": "rodando",
-                    "algoritmo": algoritmo,
-                    "caminho": caminho,
-                    "ger": gerados,
-                    "exp": expandidos,
-                    "iter": iteracoes
-                }
-
-                await websocket.send_json(payload)
+        if algoritmo == "ida*":
+            resultado, gerados, expandidos, tempo = ida_estrela(caminho, tempo_max)
 
         elif algoritmo == "dfs":
-            INICIAL = caminho
-            #Executa a DFS
-            resultado, gerados, expandidos, iteracoes = dfs_interface(INICIAL)
-            #Lista que será enviada para a interface 
-            caminho_json = []
+            resultado, gerados, expandidos, tempo = dfs_interface(caminho, tempo_max)
 
-            #Envia um movimento pot vez
-            for coordenada in resultado:
-                caminho_json.append({
-                    "x": coordenada[0],
-                    "y": coordenada[1]
-                })
+        # Lista que será enviada para a interface 
+        caminho_json = []
 
-                payload = {
-                    "status": "rodando",
-                    "algoritmo": algoritmo,
-                    "caminho": caminho_json,
-                    "ger": gerados,
-                    "exp": expandidos,
-                    "iter": iteracoes
-                }
+        # Monta o JSON e envia um movimento pot vez
+        for coordenada in resultado:
+            caminho_json.append({"x": coordenada[0], "y": coordenada[1]})
 
-                await websocket.send_json(payload)
-                #tempo entre um movimento e o outro
-                await asyncio.sleep(0.2)
+            payload = {
+                "status": "rodando",
+                "algoritmo": algoritmo,
+                "caminho": list(caminho_json),
+                "ger": gerados,
+                "exp": expandidos,
+                "tempo": tempo
+            }
+
+            await websocket.send_json(payload)
+            #await asyncio.sleep(0.2)
 
         await websocket.send_json({"status": "fim"})
     
