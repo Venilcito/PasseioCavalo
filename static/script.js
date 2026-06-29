@@ -217,7 +217,7 @@ function sinalizarCasaInicial() {
         li.style.color = "black";
         li.style.listStyleType = "none";
         li.style.marginLeft = "-20px";
-        li.innerHTML = `<span style="color: #769656; font-weight: bold;">Casa Inicial:</span> (${casa.x}, ${casa.y})<br><span style="color: #888; font-size: 14px; font-style: italic;">Aguardando execução...</span>`;
+        li.innerHTML = `<span style="color: #769656; font-weight: bold;">Casa Inicial:</span> (${casa.y}, ${casa.x})<br><span style="color: #888; font-size: 14px; font-style: italic;">Aguardando execução...</span>`;
         listaCaminho.appendChild(li);
     }
 }
@@ -238,11 +238,11 @@ function exibirCaminhoFinal() {
         li.style.color = "black";
         
         if (index === 0) {
-            li.innerHTML = `<span style="color: #769656; font-weight: bold;">Casa Inicial:</span> (${casa.x + 1}, ${casa.y + 1})`;
+            li.innerHTML = `<span style="color: #769656; font-weight: bold;">Casa Inicial:</span> ( ${casa.y + 1}, ${casa.x + 1})`;
             li.style.listStyleType = "none";
             li.style.marginLeft = "-20px";
         } else {
-            li.innerHTML = `<span style="font-weight: normal; color: #333;">Movimento ${index}:</span> <strong>(${casa.x + 1}, ${casa.y + 1})</strong>`;
+            li.innerHTML = `<span style="font-weight: normal; color: #333;">Movimento ${index}:</span> <strong>(${casa.y + 1}, ${casa.x + 1})</strong>`;
         }
         
         listaCaminho.appendChild(li);
